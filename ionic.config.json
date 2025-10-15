@@ -1,5 +1,7 @@
 {
   "name": "easy-freelance",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular-standalone"
 }
