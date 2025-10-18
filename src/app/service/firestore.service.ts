@@ -1,28 +1,80 @@
 import { Injectable } from '@angular/core';
-import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import {
+  Firestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  addDoc,
+} from '@angular/fire/firestore';
+import { DocumentReference, DocumentSnapshot, DocumentData } from '@firebase/firestore';
+import { from, Observable, throwError } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class FirestoreService {
+
   constructor(private firestore: Firestore) {}
 
-  getCollection(collectionName: string): Observable<any[]> {
-    const colRef = collection(this.firestore, collectionName);
-    return collectionData(colRef, { idField: 'id' });
+  addDocument(collectionName: string, data: any): Observable<any> {
+    try {
+      const colRef = collection(this.firestore, collectionName);
+      return from(addDoc(colRef, data));
+    } catch (error) {
+      console.error('Erreur Firestore (addDocument):', error);
+      return throwError(() => error);
+    }
   }
 
-  addDocument(collectionName: string, data: any) {
-    const colRef = collection(this.firestore, collectionName);
-    return addDoc(colRef, data);
+  setDocument(collectionName: string, docId: string, data: any): Observable<void> {
+    try {
+      const docRef: DocumentReference<DocumentData> = doc(this.firestore, `${collectionName}/${docId}`);
+      return from(setDoc(docRef, data, { merge: true })) as Observable<void>;
+    } catch (error) {
+      console.error('Erreur Firestore (setDocument):', error);
+      return throwError(() => error);
+    }
   }
 
-  updateDocument(collectionName: string, id: string, data: any) {
-    const docRef = doc(this.firestore, `${collectionName}/${id}`);
-    return updateDoc(docRef, data);
+  getDocument(collectionName: string, docId: string): Observable<any> {
+    try {
+      const docRef: DocumentReference<DocumentData> = doc(this.firestore, `${collectionName}/${docId}`);
+      return from(getDoc(docRef) as Promise<DocumentSnapshot<DocumentData>>).pipe(
+        map((snapshot: DocumentSnapshot<DocumentData>) => {
+          if (snapshot.exists()) {
+            return { id: snapshot.id, ...snapshot.data()! };
+          } else {
+            throw new Error(`Document ${docId} non trouvé dans ${collectionName}`);
+          }
+        })
+      );
+    } catch (error) {
+      console.error('Erreur Firestore (getDocument):', error);
+      return throwError(() => error);
+    }
   }
 
-  deleteDocument(collectionName: string, id: string) {
-    const docRef = doc(this.firestore, `${collectionName}/${id}`);
-    return deleteDoc(docRef);
+  updateDocument(collectionName: string, docId: string, data: any): Observable<void> {
+    try {
+      const docRef: DocumentReference<DocumentData> = doc(this.firestore, `${collectionName}/${docId}`);
+      return from(updateDoc(docRef, data)) as Observable<void>;
+    } catch (error) {
+      console.error('Erreur Firestore (updateDocument):', error);
+      return throwError(() => error);
+    }
+  }
+
+  deleteDocument(collectionName: string, docId: string): Observable<void> {
+    try {
+      const docRef: DocumentReference<DocumentData> = doc(this.firestore, `${collectionName}/${docId}`);
+      return from(deleteDoc(docRef)) as Observable<void>;
+    } catch (error) {
+      console.error('Erreur Firestore (deleteDocument):', error);
+      return throwError(() => error);
+    }
   }
 }

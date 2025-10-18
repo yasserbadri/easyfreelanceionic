@@ -26,4 +26,5 @@ export class ApiService {
   getProjects(): Observable<any> {
     return this.http.get(`${this.BASE_URL}/projects`);
   }
+  
 }

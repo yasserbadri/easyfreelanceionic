@@ -13,37 +13,40 @@ import { AuthService } from 'src/app/service/auth.service';
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class RegisterPage {
-  name = '';
+   username = '';
   email = '';
   password = '';
-  role = 'freelancer'; // rôle par défaut
+  role = 'client'; // valeur par défaut
+  isLoading = false;
 
   constructor(private auth: AuthService, private router: Router) {}
 
-  /**
-   * Méthode pour créer un nouvel utilisateur
-   * Appelle AuthService.register
-   * Redirige vers login après succès
-   */
   register() {
-    if (!this.name || !this.email || !this.password) {
+    if (!this.username || !this.email || !this.password) {
       alert('Veuillez remplir tous les champs');
       return;
     }
 
+    this.isLoading = true;
+
     this.auth.register({
-      name: this.name,
+      username: this.username,
       email: this.email,
       password: this.password,
       role: this.role
     }).subscribe({
       next: (res) => {
+        console.log('Inscription réussie', res);
+        this.isLoading = false;
         alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        console.error('Erreur register', err);
-        alert('Erreur lors de l\'inscription');
+        console.error('Erreur lors de l\'inscription', err);
+        this.isLoading = false;
+        let msg = 'Erreur lors de l\'inscription';
+        if (err.error?.message) msg += ': ' + err.error.message;
+        alert(msg);
       }
     });
   }

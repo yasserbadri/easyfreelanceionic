@@ -16,29 +16,25 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
-          "options": {
-            "outputPath": {
-              "base": "www",
-              "browser": ""
-            },
-            "index": "src/index.html",
-            "polyfills": [
-              "src/polyfills.ts"
-            ],
-            "tsConfig": "tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "src/assets",
-                "output": "assets"
-              }
-            ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
-            "scripts": [],
-            "browser": "src/main.ts"
-          },
+          "builder": "@angular-devkit/build-angular:browser",
+        "options": {
+  "outputPath": "www",
+  "index": "src/index.html",
+  "main": "src/main.ts",
+  "polyfills": "src/polyfills.ts",
+  "tsConfig": "tsconfig.app.json",
+  "inlineStyleLanguage": "scss",
+  "assets": [
+    "src/favicon.ico",
+    "src/assets"
+  ],
+  "styles": [
+    "src/global.scss",
+    "src/theme/variables.scss"
+  ],
+  "scripts": []
+}
+,
           "configurations": {
             "production": {
               "budgets": [
@@ -91,7 +87,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "app:build"
+            "browserTarget": "app:build"
           }
         },
         "test": {

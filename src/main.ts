@@ -4,7 +4,9 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalo
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from './environments/environment';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideAuth, getAuth } from '@angular/fire/auth';
+
 
 
 import { routes } from './app/app.routes';
@@ -15,9 +17,10 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    provideHttpClient(), // ✅ c’est cette ligne qui manquait
+    provideHttpClient(withInterceptorsFromDi()), // ✅ indispensable pour HttpClient injectable
 
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
 
 

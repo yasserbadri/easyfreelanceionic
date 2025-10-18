@@ -13,34 +13,44 @@ import { AuthService } from 'src/app/service/auth.service';
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class LoginPage {
-  username = '';        // Email de l'utilisateur
-  password = '';     // Mot de passe
+  email = '';
+  password = '';
+  isLoading = false; // ✅ Pour désactiver le bouton pendant le login
 
   constructor(private auth: AuthService, private router: Router) {}
 
   /**
    * Méthode pour se connecter
-   * Appelle le service AuthService pour vérifier les identifiants
-   * Redirige vers le dashboard correspondant au rôle
+   * Auth backend → Firebase → Récupération Firestore
    */
   login() {
-    if (!this.username || !this.password) {
+    if (!this.email || !this.password) {
       alert('Veuillez remplir tous les champs');
       return;
     }
 
-    this.auth.login({ username: this.username, password: this.password }).subscribe({
-      next: (res) => {
-        this.auth.setUser(res.user); // Stocker l'utilisateur
-        // Redirection selon rôle
-        if (res.user.role === 'Freelancer') this.router.navigate(['/dashboard-client']);
-        else this.router.navigate(['/dashboard-freelancer']);
-      },
-      error: (err) => {
-        console.error('Erreur login', err);
-        alert('Email ou mot de passe incorrect');
-      }
-    });
+    this.isLoading = true;
+
+    this.auth.login({ email: this.email, password: this.password })
+      .subscribe({
+        next: (res) => {
+          this.isLoading = false;
+
+          const user = this.auth.getUser();
+
+          // Redirection selon rôle
+          if (user?.role === 'Client') {
+            this.router.navigate(['/dashboard-client']);
+          } else {
+            this.router.navigate(['/dashboard-freelancer']);
+          }
+        },
+        error: (err) => {
+          this.isLoading = false;
+          console.error('Erreur login', err);
+          alert('Email ou mot de passe incorrect');
+        }
+      });
   }
 
   goToRegister() {
