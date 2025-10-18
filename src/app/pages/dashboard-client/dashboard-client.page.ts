@@ -16,7 +16,7 @@ import { ToastController } from '@ionic/angular';
   imports: [ CommonModule, FormsModule,IonicModule]
 })
 export class DashboardClientPage implements OnInit {
- user: any = null;
+  user: any = null;
   projects: any[] = [];
 
   // 🔹 Formulaire projet
@@ -32,18 +32,27 @@ export class DashboardClientPage implements OnInit {
   constructor(
     private api: ApiService,
     private auth: AuthService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private router: Router
   ) {}
 
   async ngOnInit() {
     // 🔸 Récupère l'utilisateur connecté
     this.user = await this.auth.getUser();
 
-    if (!this.user || !this.user.id) {
-      console.warn('Aucun utilisateur connecté ou ID manquant');
+    if (!this.user) {
+      console.warn('Aucun utilisateur connecté');
       await this.showToast('Erreur : utilisateur non connecté');
+      this.router.navigate(['/login']);
       return;
     }
+
+    // 🔹 DEBUG: Afficher les informations utilisateur
+    console.log('🔍 User dans dashboard:', {
+      user: this.user,
+      mysqlId: this.auth.getCurrentUserId(),
+      username: this.user.username
+    });
 
     this.loadProjects();
   }
@@ -55,6 +64,7 @@ export class DashboardClientPage implements OnInit {
       next: (res: any) => {
         this.projects = res.data?.availableProjects || [];
         this.isLoading = false;
+        console.log('📋 Projets chargés:', this.projects);
       },
       error: (err) => {
         console.error('Erreur lors du chargement des projets', err);
@@ -64,48 +74,67 @@ export class DashboardClientPage implements OnInit {
     });
   }
 
-  // ✅ Créer un projet (avec clientId)
+  // ✅ Créer un projet avec le VRAI ID MySQL
   createProject() {
-  if (!this.newProject.name || !this.newProject.description || !this.newProject.budget) {
-    this.showToast('Veuillez remplir tous les champs');
-    return;
+    if (!this.newProject.name || !this.newProject.description || !this.newProject.budget) {
+      this.showToast('Veuillez remplir tous les champs');
+      return;
+    }
+
+    // 🔹 RÉCUPÉRER LE VRAI ID MYSQL
+    const currentUserId = this.auth.getCurrentUserId();
+    
+    if (!currentUserId) {
+      console.error('❌ ID MySQL non disponible');
+      console.log('🔍 Debug user:', this.user);
+      this.auth.debugUser();
+      this.showToast('Erreur : ID utilisateur non disponible. Veuillez vous reconnecter.');
+      return;
+    }
+
+    this.isCreating = true;
+
+    const payload = {
+      name: this.newProject.name,
+      description: this.newProject.description,
+      budget: this.newProject.budget,
+      clientId: currentUserId // 🔹 MAINTENANT LE VRAI ID MYSQL
+    };
+
+    console.log('🚀 Création projet avec payload:', payload);
+
+    this.api.createProject(payload).subscribe({
+      next: (res: any) => {
+        this.isCreating = false;
+        
+        console.log('✅ Réponse création projet:', res);
+        
+        const createdProject = res.data?.createProject;
+        const projectId = createdProject?.id;
+
+        if (projectId) {
+          this.showToast(`Projet créé avec succès (ID: ${projectId})`);
+          this.newProject = { name: '', description: '', budget: null };
+          this.loadProjects(); // Recharger la liste
+        } else {
+          this.showToast('Projet créé mais ID non reçu');
+        }
+      },
+      error: (err) => {
+        this.isCreating = false;
+        console.error('❌ Erreur création projet:', err);
+        
+        // 🔹 Afficher plus de détails sur l'erreur
+        if (err.error) {
+          console.error('Détails erreur:', err.error);
+        }
+        
+        this.showToast('Erreur lors de la création du projet');
+      }
+    });
   }
 
-  this.isCreating = true;
-
-  const payload = {
-    name: this.newProject.name,
-    description: this.newProject.description,
-    budget: this.newProject.budget,
-    clientId: 1 // 🔹 ID temporaire (le vrai mapping se fera plus tard)
-  };
-
-  this.api.createProject(payload).subscribe({
-    next: (res: any) => {
-      this.isCreating = false;
-
-      // ✅ Récupération du projet créé depuis la réponse GraphQL
-      const createdProject = res.data?.createProject;
-      const projectId = createdProject?.id;
-
-      console.log('✅ Projet créé avec ID :', projectId);
-      this.showToast(`Projet ajouté avec succès (ID: ${projectId})`);
-
-      // 🔹 Rafraîchir la liste
-      this.newProject = { name: '', description: '', budget: null };
-      this.loadProjects();
-    },
-    error: (err) => {
-      this.isCreating = false;
-      console.error('Erreur lors de la création du projet', err);
-      this.showToast('Erreur lors de la création du projet');
-    }
-  });
-}
-
-
-
-  // ✅ Toast d’affichage
+  // ✅ Toast d'affichage
   async showToast(message: string) {
     const toast = await this.toastCtrl.create({
       message,
@@ -114,5 +143,12 @@ export class DashboardClientPage implements OnInit {
       position: 'bottom'
     });
     await toast.present();
+  }
+
+  // 🔹 Méthode pour forcer la déconnexion si problème
+  logout() {
+    this.auth.logout().then(() => {
+      this.router.navigate(['/login']);
+    });
   }
 }

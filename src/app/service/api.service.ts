@@ -28,6 +28,12 @@ private base_URL = 'http://localhost:8089/graphql'; // URL GraphQL
   getEmailByUsernameOrEmail(usernameOrEmail: string): Observable<string> {
     return this.http.get(`${this.BASE_URL}/api/auth/email/${usernameOrEmail}`, { responseType: 'text' });
   }
+ getUserIdByUsername(username: string): Observable<{ id: number; username: string }> {
+    return this.http.get<{ id: number; username: string }>(`${this.BASE_URL}/api/auth/users/username/${username}`);
+  }
+  getUserByEmail(email: string): Observable<any> {
+  return this.http.get(`${this.BASE_URL}/api/auth/users/email/${email}`);
+}
   graphqlQuery(query: string, variables?: any): Observable<any> {
     const body = { query, variables };
 
