@@ -26,5 +26,10 @@ export class ApiService {
   getProjects(): Observable<any> {
     return this.http.get(`${this.BASE_URL}/projects`);
   }
+
+  // 🔹 Nouvelle méthode pour récupérer l’email Firebase
+  getEmailByUsernameOrEmail(usernameOrEmail: string): Observable<string> {
+    return this.http.get(`${this.BASE_URL}/api/auth/email/${usernameOrEmail}`, { responseType: 'text' });
+  }
   
 }

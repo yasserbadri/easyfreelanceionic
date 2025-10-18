@@ -13,7 +13,7 @@ import { AuthService } from 'src/app/service/auth.service';
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class LoginPage {
-  email = '';
+  username = '';
   password = '';
   isLoading = false; // ✅ Pour désactiver le bouton pendant le login
 
@@ -24,34 +24,39 @@ export class LoginPage {
    * Auth backend → Firebase → Récupération Firestore
    */
   login() {
-    if (!this.email || !this.password) {
-      alert('Veuillez remplir tous les champs');
-      return;
-    }
+  if (!this.username || !this.password) {
+    alert('Veuillez remplir tous les champs');
+    return;
+  }
 
-    this.isLoading = true;
+  this.isLoading = true;
 
-    this.auth.login({ email: this.email, password: this.password })
-      .subscribe({
-        next: (res) => {
-          this.isLoading = false;
+  this.auth.login({ usernameOrEmail: this.username, password: this.password })
+    .subscribe({
+      next: () => {
+        this.isLoading = false;
 
-          const user = this.auth.getUser();
+        const user = this.auth.getUser();
 
-          // Redirection selon rôle
-          if (user?.role === 'Client') {
-            this.router.navigate(['/dashboard-client']);
-          } else {
-            this.router.navigate(['/dashboard-freelancer']);
-          }
-        },
-        error: (err) => {
-          this.isLoading = false;
-          console.error('Erreur login', err);
+        // Redirection selon rôle
+        if (user?.role === 'Client') {
+          this.router.navigate(['/dashboard-client']);
+        } else {
+          this.router.navigate(['/dashboard-freelancer']);
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+
+        console.error('Erreur login', err);
+        if (err.code?.includes('auth')) {
+          alert('Erreur Firebase : email ou mot de passe incorrect / problème réseau');
+        } else {
           alert('Email ou mot de passe incorrect');
         }
-      });
-  }
+      }
+    });
+}
 
   goToRegister() {
     this.router.navigate(['/register']);
