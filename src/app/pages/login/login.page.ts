@@ -39,7 +39,7 @@ export class LoginPage {
         const user = this.auth.getUser();
 
         // Redirection selon rôle
-        if (user?.role === 'Client') {
+        if (user?.role === 'client') {
           this.router.navigate(['/dashboard-client']);
         } else {
           this.router.navigate(['/dashboard-freelancer']);

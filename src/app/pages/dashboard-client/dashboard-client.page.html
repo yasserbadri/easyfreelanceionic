@@ -1,13 +1,74 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>dashboard-client</ion-title>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Dashboard Client</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">dashboard-client</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+
+  <!-- 👋 Bienvenue -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Bienvenue, {{ user?.username || 'Client' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>Gérez vos projets et ajoutez-en de nouveaux facilement.</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🆕 Formulaire de création de projet -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Ajouter un projet</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="floating">Nom du projet</ion-label>
+        <ion-input [(ngModel)]="newProject.name" required></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Description</ion-label>
+        <ion-textarea [(ngModel)]="newProject.description" rows="3"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Budget (€)</ion-label>
+        <ion-input type="number" [(ngModel)]="newProject.budget" required></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" color="success" (click)="createProject()" [disabled]="isCreating">
+        {{ isCreating ? 'Création...' : 'Créer le projet' }}
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 📋 Liste des projets -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Mes projets</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-spinner *ngIf="isLoading" name="dots"></ion-spinner>
+
+      <ion-list *ngIf="!isLoading && projects.length > 0">
+        <ion-item *ngFor="let project of projects">
+          <ion-label>
+            <h2>{{ project.name }}</h2>
+            <p>{{ project.description }}</p>
+            <ion-chip color="medium">Budget : {{ project.budget }} €</ion-chip>
+            <ion-chip [color]="project.status === 'ACTIVE' ? 'success' : 'warning'">
+              {{ project.status }}
+            </ion-chip>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <p *ngIf="!isLoading && projects.length === 0" class="empty">
+        Aucun projet pour le moment.
+      </p>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

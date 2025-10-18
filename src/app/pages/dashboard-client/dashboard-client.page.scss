@@ -1,0 +1,18 @@
+ion-card {
+  margin-bottom: 15px;
+  border-radius: 12px;
+  --box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  --ion-color-primary: #6a11cb;
+}
+
+ion-item {
+  margin-bottom: 10px;
+  border-radius: 10px;
+  --ion-item-background: #f5f5f5;
+  --ion-item-hover-background: #e0e0e0;
+}

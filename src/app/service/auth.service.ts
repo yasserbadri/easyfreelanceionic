@@ -124,4 +124,7 @@ export class AuthService {
   getUser() { return this.user; }
   isLoggedIn(): boolean { return this.user !== null; }
   getUserRole(): string { return this.user?.role; }
+  getCurrentUserId(): string | null {
+  return this.user?.uid || null;
+}
 }
