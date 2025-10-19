@@ -9,6 +9,7 @@ import { serverTimestamp } from 'firebase/firestore';
 import { where } from 'firebase/firestore';
 import { getDocs } from 'firebase/firestore';
   import { IonicModule } from '@ionic/angular';
+import { updateDoc } from 'firebase/firestore';
 
 @Component({
   selector: 'app-dashboard-freelancer',
@@ -22,6 +23,9 @@ import { getDocs } from 'firebase/firestore';
 export class DashboardFreelancerPage implements OnInit {
   projects: any[] = [];
   proposals: any[] = [];
+  acceptedProjects: any[] = [];
+  freelancerId: string = '';
+
 
   newProposal: any = {
     projectId: '',
@@ -45,6 +49,8 @@ export class DashboardFreelancerPage implements OnInit {
     this.freelancerUid = user.uid;
     await this.loadProjects();
     await this.loadProposals();
+    await this.loadAcceptedProjects();
+
   }
 
   // Charger tous les projets (collection 'projects')
@@ -111,4 +117,30 @@ export class DashboardFreelancerPage implements OnInit {
       this.submitting = false;
     }
   }
+
+ async loadAcceptedProjects() {
+    const projectsRef = collection(this.firestore, 'projects');
+    const q = query(projectsRef, where('freelancerId', '==', this.freelancerId));
+    const snap = await getDocs(q);
+    this.acceptedProjects = snap.docs.map((docSnap: any) => ({ id: docSnap.id, ...docSnap.data() }));
+  }
+
+  async setEstimatedDate(projectId: string, date: string) {
+    if (!date) return;
+    const projectRef = doc(this.firestore, `projects/${projectId}`);
+    await updateDoc(projectRef, { estimatedEndDate: date });
+    await this.loadAcceptedProjects();
+  }
+
+  async requestPayment(projectId: string) {
+    const projectRef = doc(this.firestore, `projects/${projectId}`);
+    await updateDoc(projectRef, { paymentRequested: true });
+    await this.loadAcceptedProjects();
+  }
+  async askEstimatedDate(projectId: string) {
+  const date = window.prompt('Date estimée (YYYY-MM-DD)');
+  if (date) {
+    await this.setEstimatedDate(projectId, date);
+  }
+}
 }

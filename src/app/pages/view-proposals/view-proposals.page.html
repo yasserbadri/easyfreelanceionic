@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Propositions reçues</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Liste des propositions -->
+  <ion-list *ngIf="proposals.length > 0; else empty">
+    <ion-item *ngFor="let p of proposals">
+      <ion-label>
+        <h2>{{ p.freelancerName }}</h2>
+        <p>{{ p.description }}</p>
+        <p>Status: <strong>{{ p.status }}</strong></p>
+      </ion-label>
+
+      <ion-buttons slot="end">
+        <ion-button
+          color="success"
+          (click)="updateProposalStatus(p.id, 'accepted')"
+          [disabled]="p.status !== 'pending'">
+          Accepter
+        </ion-button>
+
+        <ion-button
+          color="danger"
+          (click)="updateProposalStatus(p.id, 'rejected')"
+          [disabled]="p.status !== 'pending'">
+          Refuser
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+
+  <!-- Message si aucune proposition -->
+  <ng-template #empty>
+    <ion-text color="medium">
+      <p>Aucune proposition reçue pour ce projet.</p>
+    </ion-text>
+  </ng-template>
+</ion-content>

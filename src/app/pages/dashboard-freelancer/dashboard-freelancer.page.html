@@ -65,3 +65,37 @@
   </section>
 
 </ion-content>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Mes Projets Acceptés</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list *ngIf="acceptedProjects.length; else noProjects">
+    <ion-item *ngFor="let project of acceptedProjects">
+      <ion-label>
+        <h2>{{ project.name }}</h2>
+        <p>{{ project.description }}</p>
+        <p>Status : {{ project.status }}</p>
+        <p *ngIf="project.estimatedEndDate">Date estimée : {{ project.estimatedEndDate }}</p>
+      </ion-label>
+
+     <ion-button fill="outline" (click)="askEstimatedDate(project.id)">
+  Définir Date
+</ion-button>
+
+
+      <ion-button color="success" (click)="requestPayment(project.id)" [disabled]="project.paymentRequested">
+        Demander Paiement
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #noProjects>
+    <ion-text color="medium">
+      <p>Aucun projet accepté pour le moment.</p>
+    </ion-text>
+  </ng-template>
+</ion-content>
+

@@ -7,4 +7,8 @@ export const routes: Routes = [
   { path: 'dashboard-client', loadComponent: () => import('./pages/dashboard-client/dashboard-client.page').then(m => m.DashboardClientPage) },
   { path: 'dashboard-freelancer', loadComponent: () => import('./pages/dashboard-freelancer/dashboard-freelancer.page').then(m => m.DashboardFreelancerPage) },
   { path: 'projects', loadComponent: () => import('./pages/projects/projects.page').then(m => m.ProjectsPage) },
+  {
+    path: 'view-proposals/:projectId',
+    loadComponent: () => import('./pages/view-proposals/view-proposals.page').then( m => m.ViewProposalsPage)
+  },
 ];

@@ -9,13 +9,15 @@ import { ApiService } from 'src/app/service/api.service';
 import { ToastController } from '@ionic/angular';
 import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
 import { inject } from '@angular/core';
+import { RouterModule } from '@angular/router'; // <-- Ajouter RouterModule
 
 @Component({
   selector: 'app-dashboard-client',
   templateUrl: './dashboard-client.page.html',
   styleUrls: ['./dashboard-client.page.scss'],
   standalone: true,
-  imports: [ CommonModule, FormsModule,IonicModule]
+  imports: [ CommonModule, FormsModule,IonicModule,    RouterModule, // <-- nécessaire pour [routerLink]
+]
 })
 export class DashboardClientPage implements OnInit {
   user: any = null;
@@ -149,5 +151,9 @@ export class DashboardClientPage implements OnInit {
     this.auth.logout().then(() => {
       this.router.navigate(['/login']);
     });
+  }
+
+  viewProposals(projectId: string) {
+    this.router.navigate(['/view-proposals', projectId]);
   }
 }
