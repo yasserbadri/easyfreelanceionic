@@ -6,96 +6,187 @@
 
 <ion-content class="freelancer-dashboard ion-padding">
 
-  <section>
-    <h2>Projets disponibles</h2>
-    <ion-list *ngIf="!loadingProjects && projects.length === 0">
-      <ion-item>
-        <ion-label>Aucun projet disponible pour l'instant.</ion-label>
-      </ion-item>
-    </ion-list>
+  <!-- Section Projets Disponibles -->
+  <section class="section">
+    <h2>📋 Projets disponibles</h2>
+    
+    <ion-spinner *ngIf="loadingProjects" name="dots"></ion-spinner>
 
-    <ion-card *ngFor="let project of projects">
+    <div *ngIf="!loadingProjects && projects.length === 0" class="empty-state">
+      <ion-icon name="briefcase-outline" size="large"></ion-icon>
+      <p>Aucun projet disponible pour l'instant.</p>
+    </div>
+
+    <ion-card *ngFor="let project of projects" class="project-card">
       <ion-card-header>
         <ion-card-title>{{ project.name }}</ion-card-title>
-        <ion-card-subtitle>Budget : {{ project.budget || 'N/A' }} €</ion-card-subtitle>
+        <ion-card-subtitle>
+          <ion-chip color="primary" outline>
+            <ion-label>Budget : {{ project.budget || 'N/A' }} €</ion-label>
+          </ion-chip>
+          <ion-chip *ngIf="project.status" [color]="getStatusColor(project.status)" outline>
+            <ion-label>{{ project.status }}</ion-label>
+          </ion-chip>
+        </ion-card-subtitle>
       </ion-card-header>
+      
       <ion-card-content>
-        <p>{{ project.description }}</p>
-        <ion-button expand="block" (click)="newProposal.projectId = project.id">
-          Postuler à ce projet
+        <p class="project-description">{{ project.description }}</p>
+        
+        <ion-button expand="block" color="success" (click)="newProposal.projectId = project.id">
+          ✨ Postuler à ce projet
         </ion-button>
       </ion-card-content>
     </ion-card>
   </section>
 
-  <section *ngIf="newProposal.projectId" class="proposal-form">
-    <h2>Soumettre une proposition</h2>
-    <ion-item>
-      <ion-label position="stacked">Description</ion-label>
-      <ion-textarea [(ngModel)]="newProposal.description"></ion-textarea>
-    </ion-item>
+  <!-- Formulaire de Proposition -->
+  <section *ngIf="newProposal.projectId" class="proposal-form section">
+    <h2>📨 Soumettre une proposition</h2>
+    
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Projet : {{ getProjectName(newProposal.projectId) }}</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Description de votre proposition *</ion-label>
+          <ion-textarea 
+            [(ngModel)]="newProposal.description" 
+            rows="4"
+            placeholder="Décrivez votre approche, vos compétences, et pourquoi vous êtes le meilleur choix..."
+            required>
+          </ion-textarea>
+        </ion-item>
 
-    <ion-item>
-      <ion-label position="stacked">Prix proposé (€)</ion-label>
-      <ion-input type="number" [(ngModel)]="newProposal.price"></ion-input>
-    </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Prix proposé (€) *</ion-label>
+          <ion-input 
+            type="number" 
+            [(ngModel)]="newProposal.price"
+            placeholder="Montant de votre proposition"
+            required>
+          </ion-input>
+        </ion-item>
 
-    <ion-button expand="block" color="success" [disabled]="submitting" (click)="submitProposal()">
-      {{ submitting ? 'Envoi...' : 'Envoyer la proposition' }}
-    </ion-button>
+        <div class="form-actions">
+          <ion-button expand="block" color="success" [disabled]="submitting" (click)="submitProposal()">
+            <ion-spinner *ngIf="submitting" name="dots"></ion-spinner>
+            {{ submitting ? 'Envoi en cours...' : '📤 Envoyer la proposition' }}
+          </ion-button>
 
-    <ion-button fill="clear" (click)="newProposal = { projectId: '', description: '', price: '' }">
-      Annuler
-    </ion-button>
+          <ion-button expand="block" fill="clear" color="medium" 
+                     (click)="newProposal = { projectId: '', description: '', price: '' }">
+            ❌ Annuler
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
   </section>
 
-  <section class="my-proposals" style="margin-top:20px;">
-    <h2>Mes propositions</h2>
-    <ion-card *ngFor="let p of proposals">
+  <!-- Section Mes Propositions -->
+  <section class="section my-proposals">
+    <h2>📬 Mes propositions</h2>
+    
+    <ion-spinner *ngIf="loadingProposals" name="dots"></ion-spinner>
+
+    <div *ngIf="!loadingProposals && proposals.length === 0" class="empty-state">
+      <ion-icon name="document-text-outline" size="large"></ion-icon>
+      <p>Vous n'avez encore soumis aucune proposition.</p>
+    </div>
+
+    <ion-card *ngFor="let p of proposals" class="proposal-card">
       <ion-card-header>
-        <ion-card-title>Projet : {{ p.projectId }}</ion-card-title>
-        <ion-card-subtitle>Statut : {{ p.status }}</ion-card-subtitle>
+        <ion-card-title>{{ getProjectName(p.projectId) }}</ion-card-title>
+        <ion-card-subtitle>
+          <ion-chip [color]="getStatusColor(p.status)" outline>
+            <ion-label>{{ p.status }}</ion-label>
+          </ion-chip>
+          <ion-chip color="primary" outline>
+            <ion-label>{{ p.price }} €</ion-label>
+          </ion-chip>
+        </ion-card-subtitle>
       </ion-card-header>
+      
       <ion-card-content>
-        <p><strong>Prix :</strong> {{ p.price }} €</p>
-        <p>{{ p.description }}</p>
-        <small *ngIf="p.createdAt">Envoyé : {{ p.createdAt.toDate ? (p.createdAt.toDate() | date:'short') : (p.createdAt | date:'short') }}</small>
+        <p class="proposal-description">{{ p.description }}</p>
+        
+        <div class="proposal-meta">
+          <small>
+            <ion-icon name="time-outline"></ion-icon>
+            Envoyé : {{ p.createdAt?.toDate ? (p.createdAt.toDate() | date:'short') : (p.createdAt | date:'short') }}
+          </small>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </section>
+
+  <!-- Section Projets Acceptés -->
+  <section class="section accepted-projects">
+    <h2>✅ Mes projets acceptés</h2>
+    
+    <ion-spinner *ngIf="loadingAcceptedProjects" name="dots"></ion-spinner>
+
+    <div *ngIf="!loadingAcceptedProjects && acceptedProjects.length === 0" class="empty-state">
+      <ion-icon name="trophy-outline" size="large"></ion-icon>
+      <p>Vous n'avez aucun projet accepté pour le moment.</p>
+      <p class="hint">Les projets acceptés apparaîtront ici automatiquement.</p>
+    </div>
+
+    <ion-card *ngFor="let project of acceptedProjects" class="accepted-project-card">
+      <ion-card-header>
+        <ion-card-title>{{ project.name }}</ion-card-title>
+        <ion-card-subtitle>
+          <ion-chip [color]="getStatusColor(project.status)" outline>
+            <ion-label>{{ project.status || 'En cours' }}</ion-label>
+          </ion-chip>
+          <ion-chip color="primary" outline>
+            <ion-label>Budget : {{ project.budget }} €</ion-label>
+          </ion-chip>
+        </ion-card-subtitle>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <p class="project-description">{{ project.description }}</p>
+        
+        <div class="project-details">
+          <ion-item>
+            <ion-label>
+              <h3>📅 Date estimée de fin</h3>
+              <p>{{ project.estimatedEndDate ? formatDate(project.estimatedEndDate) : 'Non définie' }}</p>
+            </ion-label>
+            <ion-button slot="end" fill="outline" size="small" (click)="askEstimatedDate(project.id)">
+              <ion-icon name="calendar-outline" slot="start"></ion-icon>
+              Définir
+            </ion-button>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>
+              <h3>💰 Paiement</h3>
+              <p>{{ project.paymentRequested ? 'Demandé ✅' : 'Non demandé' }}</p>
+            </ion-label>
+            <ion-button 
+              slot="end" 
+              color="success" 
+              size="small" 
+              (click)="requestPayment(project.id)" 
+              [disabled]="project.paymentRequested">
+              <ion-icon name="cash-outline" slot="start"></ion-icon>
+              {{ project.paymentRequested ? 'Déjà demandé' : 'Demander' }}
+            </ion-button>
+          </ion-item>
+        </div>
+
+        <div class="project-meta">
+          <small *ngIf="project.assignedAt">
+            <ion-icon name="time-outline"></ion-icon>
+            Assigné le : {{ project.assignedAt?.toDate ? (project.assignedAt.toDate() | date:'short') : (project.assignedAt | date:'short') }}
+          </small>
+        </div>
       </ion-card-content>
     </ion-card>
   </section>
 
 </ion-content>
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>Mes Projets Acceptés</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <ion-list *ngIf="acceptedProjects.length; else noProjects">
-    <ion-item *ngFor="let project of acceptedProjects">
-      <ion-label>
-        <h2>{{ project.name }}</h2>
-        <p>{{ project.description }}</p>
-        <p>Status : {{ project.status }}</p>
-        <p *ngIf="project.estimatedEndDate">Date estimée : {{ project.estimatedEndDate }}</p>
-      </ion-label>
-
-     <ion-button fill="outline" (click)="askEstimatedDate(project.id)">
-  Définir Date
-</ion-button>
-
-
-      <ion-button color="success" (click)="requestPayment(project.id)" [disabled]="project.paymentRequested">
-        Demander Paiement
-      </ion-button>
-    </ion-item>
-  </ion-list>
-
-  <ng-template #noProjects>
-    <ion-text color="medium">
-      <p>Aucun projet accepté pour le moment.</p>
-    </ion-text>
-  </ng-template>
-</ion-content>
-

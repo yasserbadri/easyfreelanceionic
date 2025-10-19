@@ -1,21 +1,114 @@
 .freelancer-dashboard {
-  h2 {
-    color: var(--ion-color-primary);
-    margin: 12px 0;
+  .section {
+    margin-bottom: 32px;
+    
+    h2 {
+      margin-bottom: 16px;
+      color: var(--ion-color-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
   }
 
-  ion-card {
-    margin-bottom: 12px;
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ion-color-medium);
+    
+    ion-icon {
+      margin-bottom: 16px;
+    }
+    
+    .hint {
+      font-size: 0.9em;
+      font-style: italic;
+      margin-top: 8px;
+    }
   }
 
-  .proposal-form {
-    background: #fafafa;
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 12px;
+  .project-card,
+  .proposal-card,
+  .accepted-project-card {
+    margin-bottom: 16px;
+    
+    ion-card-header {
+      padding-bottom: 8px;
+    }
+    
+    ion-card-subtitle {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
   }
 
-  .my-proposals ion-card {
-    border-left: 4px solid var(--ion-color-medium);
+  .project-description,
+  .proposal-description {
+    white-space: pre-wrap;
+    line-height: 1.5;
+    margin-bottom: 16px;
   }
+
+  .proposal-meta,
+  .project-meta {
+    margin-top: 16px;
+    padding-top: 8px;
+    border-top: 1px solid var(--ion-color-light);
+    
+    small {
+      color: var(--ion-color-medium);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  }
+
+  .project-details {
+    ion-item {
+      --padding-start: 0;
+      --inner-padding-end: 0;
+      margin-bottom: 12px;
+      
+      h3 {
+        margin: 0 0 4px 0;
+        font-size: 0.9em;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+
+  .form-actions {
+    margin-top: 20px;
+    
+    ion-button {
+      margin-bottom: 8px;
+    }
+  }
+}
+
+// Couleurs des statuts
+ion-chip[color="success"] {
+  --background: var(--ion-color-success);
+  --color: white;
+}
+
+ion-chip[color="warning"] {
+  --background: var(--ion-color-warning);
+  --color: black;
+}
+
+ion-chip[color="danger"] {
+  --background: var(--ion-color-danger);
+  --color: white;
+}
+
+ion-chip[color="primary"] {
+  --background: var(--ion-color-primary);
+  --color: white;
 }

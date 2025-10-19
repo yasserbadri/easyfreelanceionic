@@ -5,37 +5,44 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Liste des propositions -->
   <ion-list *ngIf="proposals.length > 0; else empty">
     <ion-item *ngFor="let p of proposals">
       <ion-label>
         <h2>{{ p.freelancerName }}</h2>
-        <p>{{ p.description }}</p>
-        <p>Status: <strong>{{ p.status }}</strong></p>
+        <p><strong>Description:</strong> {{ p.description }}</p>
+        <p><strong>Prix proposé:</strong> {{ p.price }} €</p>
+        <p><strong>Status:</strong> 
+          <ion-badge [color]="getStatusColor(p.status)">{{ p.status }}</ion-badge>
+        </p>
+        <p *ngIf="p.createdAt" class="date">
+          <small>Envoyée le: {{ formatDate(p.createdAt) }}</small>
+        </p>
       </ion-label>
 
       <ion-buttons slot="end">
         <ion-button
           color="success"
-          (click)="updateProposalStatus(p.id, 'accepted')"
-          [disabled]="p.status !== 'pending'">
-          Accepter
+          (click)="confirmAction(p.id, 'accepted')"
+          [disabled]="p.status === 'Acceptée' || p.status === 'Refusée'">
+          ACCEPTER
         </ion-button>
 
         <ion-button
           color="danger"
-          (click)="updateProposalStatus(p.id, 'rejected')"
-          [disabled]="p.status !== 'pending'">
-          Refuser
+          (click)="confirmAction(p.id, 'rejected')"
+          [disabled]="p.status === 'Acceptée' || p.status === 'Refusée'">
+          REFUSER
         </ion-button>
       </ion-buttons>
     </ion-item>
   </ion-list>
 
-  <!-- Message si aucune proposition -->
   <ng-template #empty>
-    <ion-text color="medium">
-      <p>Aucune proposition reçue pour ce projet.</p>
-    </ion-text>
+    <div class="empty-state">
+      <ion-icon name="document-text-outline" size="large"></ion-icon>
+      <ion-text color="medium">
+        <p>Aucune proposition reçue pour ce projet.</p>
+      </ion-text>
+    </div>
   </ng-template>
 </ion-content>
