@@ -1,76 +1,468 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>Dashboard Client</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-app>
+  <!-- Header Ionic -->
+  <ion-header [translucent]="true">
+    <ion-toolbar color="primary">
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>{{ getSectionTitle() }}</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="refreshData()">
+          <ion-icon slot="icon-only" name="refresh"></ion-icon>
+        </ion-button>
+        <ion-button>
+          <ion-icon slot="icon-only" name="notifications"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
 
-<ion-content class="ion-padding">
-
-  <!-- 👋 Bienvenue -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Bienvenue, {{ user?.username || 'Client' }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p>Gérez vos projets et ajoutez-en de nouveaux facilement.</p>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- 🆕 Formulaire de création de projet -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Ajouter un projet</ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-      <ion-item>
-        <ion-label position="floating">Nom du projet</ion-label>
-        <ion-input [(ngModel)]="newProject.name" required></ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="floating">Description</ion-label>
-        <ion-textarea [(ngModel)]="newProject.description" rows="3"></ion-textarea>
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="floating">Budget (€)</ion-label>
-        <ion-input type="number" [(ngModel)]="newProject.budget" required></ion-input>
-      </ion-item>
-
-      <ion-button expand="block" color="success" (click)="createProject()" [disabled]="isCreating">
-        {{ isCreating ? 'Création...' : 'Créer le projet' }}
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- 📋 Liste des projets -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Mes projets</ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-      <ion-spinner *ngIf="isLoading" name="dots"></ion-spinner>
-
-      <ion-list *ngIf="!isLoading && projects.length > 0">
-        <ion-item *ngFor="let project of projects">
+  <!-- Menu Latéral Ionic -->
+  <ion-menu side="start" menuId="first" contentId="main-content">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Menu Client</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <!-- Profil Utilisateur -->
+      <ion-list lines="none" class="user-profile">
+        <ion-item>
+          <ion-avatar slot="start">
+            <ion-text color="primary">
+              <div class="avatar-placeholder">{{ user?.username?.charAt(0)?.toUpperCase() || 'C' }}</div>
+            </ion-text>
+          </ion-avatar>
           <ion-label>
-            <h2>{{ project.name }}</h2>
-            <p>{{ project.description }}</p>
-            <ion-chip color="medium">Budget : {{ project.budget }} €</ion-chip>
-            <ion-chip [color]="project.status === 'ACTIVE' ? 'success' : 'warning'">
-              {{ project.status }}
-            </ion-chip>
+            <h2>{{ user?.username || 'Client' }}</h2>
+            <p>{{ user?.email || '' }}</p>
           </ion-label>
-<ion-button [routerLink]="['/view-proposals', project.id]">Voir propositions</ion-button>
-
         </ion-item>
       </ion-list>
 
-      <p *ngIf="!isLoading && projects.length === 0" class="empty">
-        Aucun projet pour le moment.
-      </p>
-    </ion-card-content>
-  </ion-card>
-</ion-content>
+      <!-- Navigation -->
+      <ion-list lines="none" class="navigation-menu">
+        <ion-item 
+          [class.active]="activeSection === 'dashboard'" 
+          (click)="setActiveSection('dashboard')"
+          button>
+          <ion-icon slot="start" name="stats-chart" color="primary"></ion-icon>
+          <ion-label>Tableau de bord</ion-label>
+        </ion-item>
+
+        <ion-item 
+          [class.active]="activeSection === 'my-projects'" 
+          (click)="setActiveSection('my-projects')"
+          button>
+          <ion-icon slot="start" name="briefcase" color="primary"></ion-icon>
+          <ion-label>Mes projets</ion-label>
+          <ion-badge slot="end" color="primary" *ngIf="projects.length > 0">
+            {{ projects.length }}
+          </ion-badge>
+        </ion-item>
+
+        <ion-item 
+          [class.active]="activeSection === 'proposals'" 
+          (click)="setActiveSection('proposals')"
+          button>
+          <ion-icon slot="start" name="document-text" color="primary"></ion-icon>
+          <ion-label>Propositions</ion-label>
+          <ion-badge slot="end" color="warning" *ngIf="proposals.length > 0">
+            {{ proposals.length }}
+          </ion-badge>
+        </ion-item>
+
+        <ion-item 
+          [class.active]="activeSection === 'active-projects'" 
+          (click)="setActiveSection('active-projects')"
+          button>
+          <ion-icon slot="start" name="trophy" color="primary"></ion-icon>
+          <ion-label>Projets en cours</ion-label>
+          <ion-badge slot="end" color="success" *ngIf="activeProjects.length > 0">
+            {{ activeProjects.length }}
+          </ion-badge>
+        </ion-item>
+
+        <ion-item 
+          [class.active]="activeSection === 'freelancer-posts'" 
+          (click)="setActiveSection('freelancer-posts')"
+          button>
+          <ion-icon slot="start" name="images" color="primary"></ion-icon>
+          <ion-label>Portfolios</ion-label>
+          <ion-badge slot="end" color="tertiary" *ngIf="posts.length > 0">
+            {{ posts.length }}
+          </ion-badge>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <!-- Contenu Principal -->
+  <ion-content [fullscreen]="true" id="main-content">
+    
+    <!-- Section Tableau de Bord -->
+    <div *ngIf="activeSection === 'dashboard'" class="dashboard-section">
+      <!-- Cartes de Statistiques -->
+      <ion-grid fixed>
+        <ion-row>
+          <ion-col size="12" size-md="6" size-lg="3">
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-content">
+                  <ion-icon name="briefcase" color="primary" class="stat-icon"></ion-icon>
+                  <div class="stat-info">
+                    <h2>{{ stats.totalProjects }}</h2>
+                    <p>Projets créés</p>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <ion-col size="12" size-md="6" size-lg="3">
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-content">
+                  <ion-icon name="trophy" color="success" class="stat-icon"></ion-icon>
+                  <div class="stat-info">
+                    <h2>{{ stats.activeProjects }}</h2>
+                    <p>Projets actifs</p>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <ion-col size="12" size-md="6" size-lg="3">
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-content">
+                  <ion-icon name="document-text" color="warning" class="stat-icon"></ion-icon>
+                  <div class="stat-info">
+                    <h2>{{ stats.totalProposals }}</h2>
+                    <p>Propositions</p>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <ion-col size="12" size-md="6" size-lg="3">
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-content">
+                  <ion-icon name="cash" color="tertiary" class="stat-icon"></ion-icon>
+                  <div class="stat-info">
+                    <h2>{{ stats.totalBudget }} €</h2>
+                    <p>Budget total</p>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Actions Rapides -->
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Actions rapides</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-grid>
+            <ion-row>
+              <ion-col size="6">
+                <ion-button 
+                  expand="block" 
+                  fill="outline" 
+                  (click)="setActiveSection('my-projects')"
+                  class="quick-action-btn">
+                  <ion-icon slot="start" name="add-circle"></ion-icon>
+                  Nouveau projet
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button 
+                  expand="block" 
+                  fill="outline" 
+                  (click)="setActiveSection('proposals')"
+                  class="quick-action-btn">
+                  <ion-icon slot="start" name="list"></ion-icon>
+                  Voir propositions
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Section Mes Projets -->
+    <div *ngIf="activeSection === 'my-projects'" class="projects-section">
+      <ion-list-header>
+        <ion-label>
+          <h2>Mes Projets</h2>
+          <p>Créez et gérez vos projets</p>
+        </ion-label>
+      </ion-list-header>
+
+      <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+
+      <!-- Formulaire de création de projet -->
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Ajouter un projet</ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <ion-item>
+            <ion-label position="floating">Nom du projet</ion-label>
+            <ion-input [(ngModel)]="newProject.name" required></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="floating">Description</ion-label>
+            <ion-textarea [(ngModel)]="newProject.description" rows="3"></ion-textarea>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="floating">Budget (€)</ion-label>
+            <ion-input type="number" [(ngModel)]="newProject.budget" required></ion-input>
+          </ion-item>
+
+          <ion-button expand="block" color="success" (click)="createProject()" [disabled]="isCreating">
+            {{ isCreating ? 'Création...' : 'Créer le projet' }}
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Liste des projets -->
+      <ion-list lines="full" *ngIf="!isLoading && projects.length > 0">
+        <ion-item 
+          *ngFor="let project of projects" 
+          class="project-item">
+          <ion-label>
+            <h3>{{ project.name }}</h3>
+            <p>{{ project.description }}</p>
+            <div class="project-meta">
+              <ion-badge color="primary">{{ project.budget || 'N/A' }} €</ion-badge>
+              <ion-badge [color]="getStatusColor(project.status)">
+                {{ project.status || 'disponible' }}
+              </ion-badge>
+              <ion-text color="medium">
+                <small>{{ project.createdAt | date:'dd/MM/yy' }}</small>
+              </ion-text>
+            </div>
+          </ion-label>
+          <ion-button [routerLink]="['/view-proposals', project.id]" fill="outline" size="small">
+            Voir propositions
+          </ion-button>
+        </ion-item>
+      </ion-list>
+
+      <!-- État Vide -->
+      <div *ngIf="!isLoading && projects.length === 0" class="empty-state">
+        <ion-icon name="briefcase-outline" class="empty-icon"></ion-icon>
+        <h3>Aucun projet créé</h3>
+        <p>Commencez par créer votre premier projet</p>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Chargement des projets...</p>
+      </div>
+    </div>
+
+    <!-- Section Propositions -->
+    <div *ngIf="activeSection === 'proposals'" class="proposals-section">
+      <ion-list-header>
+        <ion-label>
+          <h2>Propositions Reçues</h2>
+          <p>Consultez les propositions des freelancers</p>
+        </ion-label>
+      </ion-list-header>
+
+      <ion-list lines="full" *ngIf="!loadingProposals && proposals.length > 0">
+        <ion-item 
+          *ngFor="let proposal of proposals" 
+          class="proposal-item">
+          <ion-label>
+            <h3>{{ proposal.projectName }}</h3>
+            <p class="proposal-description">{{ proposal.description }}</p>
+            <div class="proposal-meta">
+              <ion-badge [color]="getStatusColor(proposal.status)">
+                {{ proposal.status }}
+              </ion-badge>
+              <ion-text color="primary">
+                <strong>{{ proposal.price }} €</strong>
+              </ion-text>
+              <ion-text color="medium">
+                <small>Par {{ proposal.freelancerName }}</small>
+              </ion-text>
+            </div>
+            
+            <!-- Actions pour les propositions en attente -->
+            <div *ngIf="proposal.status === 'En attente'" class="proposal-actions">
+              <ion-grid>
+                <ion-row>
+                  <ion-col size="6">
+                    <ion-button 
+                      expand="block" 
+                      color="success" 
+                      size="small"
+                      (click)="acceptProposal(proposal)">
+                      <ion-icon slot="start" name="checkmark"></ion-icon>
+                      Accepter
+                    </ion-button>
+                  </ion-col>
+                  <ion-col size="6">
+                    <ion-button 
+                      expand="block" 
+                      color="danger" 
+                      size="small"
+                      (click)="rejectProposal(proposal.id)">
+                      <ion-icon slot="start" name="close"></ion-icon>
+                      Refuser
+                    </ion-button>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </div>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <!-- État Vide -->
+      <div *ngIf="!loadingProposals && proposals.length === 0" class="empty-state">
+        <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+        <h3>Aucune proposition</h3>
+        <p>Les propositions pour vos projets apparaîtront ici</p>
+      </div>
+    </div>
+
+    <!-- Section Projets en Cours -->
+    <div *ngIf="activeSection === 'active-projects'" class="active-section">
+      <ion-list-header>
+        <ion-label>
+          <h2>Projets en Cours</h2>
+          <p>Suivez vos projets actifs</p>
+        </ion-label>
+      </ion-list-header>
+
+      <ion-list lines="full" *ngIf="!loadingActiveProjects && activeProjects.length > 0">
+        <ion-item 
+          *ngFor="let project of activeProjects" 
+          class="active-project-item">
+          <ion-label>
+            <h3>{{ project.name }}</h3>
+            <p>{{ project.description }}</p>
+            
+            <div class="project-info">
+              <ion-text color="medium">
+                <small>Freelancer: {{ project.freelancerName || 'Non assigné' }}</small>
+              </ion-text>
+              <ion-text color="primary">
+                <strong>Budget: {{ project.budget }} €</strong>
+              </ion-text>
+            </div>
+
+            <div class="project-actions">
+              <ion-button 
+                expand="block" 
+                color="success" 
+                size="small"
+                (click)="completeProject(project.id)">
+                <ion-icon slot="start" name="checkmark-done"></ion-icon>
+                Terminer le projet
+              </ion-button>
+            </div>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <!-- État Vide -->
+      <div *ngIf="!loadingActiveProjects && activeProjects.length === 0" class="empty-state">
+        <ion-icon name="trophy-outline" class="empty-icon"></ion-icon>
+        <h3>Aucun projet en cours</h3>
+        <p>Vos projets acceptés apparaîtront ici</p>
+      </div>
+    </div>
+
+    <!-- Section Portfolios Freelancers -->
+    <div *ngIf="activeSection === 'freelancer-posts'" class="posts-section">
+      <ion-list-header>
+        <ion-label>
+          <h2>Portfolios Freelancers</h2>
+          <p>Découvrez le travail des freelancers</p>
+        </ion-label>
+      </ion-list-header>
+
+      <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+
+      <!-- Liste des posts -->
+      <div *ngIf="loadingPosts" class="loading-posts">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Chargement des portfolios...</p>
+      </div>
+
+      <!-- Posts existants -->
+      <ion-card *ngFor="let post of posts" class="post-card">
+        <ion-card-header>
+          <ion-card-title class="post-author">
+            {{ post.freelancerName || 'Freelancer' }}
+          </ion-card-title>
+          <ion-card-subtitle class="post-date">
+            {{ post.createdAt ? (post.createdAt | date: 'dd/MM/yyyy à HH:mm') : 'Date inconnue' }}
+          </ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <!-- Description du post -->
+          <p *ngIf="post.description" class="post-description">
+            {{ post.description }}
+          </p>
+
+          <!-- Média du post -->
+          <div *ngIf="post.mediaData && post.mediaType === 'image'" class="post-media">
+            <img 
+              [src]="post.mediaData" 
+              alt="Image du post" 
+              class="post-image" 
+              (click)="openMediaSimple(post.mediaData)" />
+          </div>
+
+          <div *ngIf="post.mediaData && post.mediaType === 'video'" class="post-media">
+            <video 
+              controls 
+              class="post-video"
+              (click)="openMediaSimple(post.mediaData)">
+              <source [src]="post.mediaData" type="video/mp4" />
+              Votre navigateur ne supporte pas la lecture vidéo.
+            </video>
+          </div>
+
+          <!-- Badge Base64 -->
+          <div *ngIf="post.isBase64" class="base64-badge">
+            <ion-badge color="tertiary" size="small">
+              <ion-icon name="code-slash" slot="start"></ion-icon>
+              Portfolio
+            </ion-badge>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Aucun post -->
+      <div *ngIf="!loadingPosts && posts.length === 0" class="empty-state">
+        <ion-icon name="images-outline" class="empty-icon"></ion-icon>
+        <h3>Aucun portfolio disponible</h3>
+        <p>Les freelancers publieront bientôt leurs réalisations</p>
+      </div>
+    </div>
+
+  </ion-content>
+</ion-app>
