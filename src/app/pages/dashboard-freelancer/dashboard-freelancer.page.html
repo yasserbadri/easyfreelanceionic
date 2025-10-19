@@ -1,13 +1,67 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>dashboard-freelancer</ion-title>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Dashboard Freelancer</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">dashboard-freelancer</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="freelancer-dashboard ion-padding">
+
+  <section>
+    <h2>Projets disponibles</h2>
+    <ion-list *ngIf="!loadingProjects && projects.length === 0">
+      <ion-item>
+        <ion-label>Aucun projet disponible pour l'instant.</ion-label>
+      </ion-item>
+    </ion-list>
+
+    <ion-card *ngFor="let project of projects">
+      <ion-card-header>
+        <ion-card-title>{{ project.name }}</ion-card-title>
+        <ion-card-subtitle>Budget : {{ project.budget || 'N/A' }} €</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <p>{{ project.description }}</p>
+        <ion-button expand="block" (click)="newProposal.projectId = project.id">
+          Postuler à ce projet
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </section>
+
+  <section *ngIf="newProposal.projectId" class="proposal-form">
+    <h2>Soumettre une proposition</h2>
+    <ion-item>
+      <ion-label position="stacked">Description</ion-label>
+      <ion-textarea [(ngModel)]="newProposal.description"></ion-textarea>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Prix proposé (€)</ion-label>
+      <ion-input type="number" [(ngModel)]="newProposal.price"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" color="success" [disabled]="submitting" (click)="submitProposal()">
+      {{ submitting ? 'Envoi...' : 'Envoyer la proposition' }}
+    </ion-button>
+
+    <ion-button fill="clear" (click)="newProposal = { projectId: '', description: '', price: '' }">
+      Annuler
+    </ion-button>
+  </section>
+
+  <section class="my-proposals" style="margin-top:20px;">
+    <h2>Mes propositions</h2>
+    <ion-card *ngFor="let p of proposals">
+      <ion-card-header>
+        <ion-card-title>Projet : {{ p.projectId }}</ion-card-title>
+        <ion-card-subtitle>Statut : {{ p.status }}</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Prix :</strong> {{ p.price }} €</p>
+        <p>{{ p.description }}</p>
+        <small *ngIf="p.createdAt">Envoyé : {{ p.createdAt.toDate ? (p.createdAt.toDate() | date:'short') : (p.createdAt | date:'short') }}</small>
+      </ion-card-content>
+    </ion-card>
+  </section>
+
 </ion-content>

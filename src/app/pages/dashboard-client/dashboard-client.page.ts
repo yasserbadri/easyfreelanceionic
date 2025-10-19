@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { ApiService } from 'src/app/service/api.service';
 import { ToastController } from '@ionic/angular';
+import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard-client',
@@ -18,6 +20,8 @@ import { ToastController } from '@ionic/angular';
 export class DashboardClientPage implements OnInit {
   user: any = null;
   projects: any[] = [];
+  firestore = inject(Firestore); // ✅ nouvelle façon d'injecter Firestore
+
 
   // 🔹 Formulaire projet
   newProject = {
@@ -81,14 +85,10 @@ export class DashboardClientPage implements OnInit {
       return;
     }
 
-    // 🔹 RÉCUPÉRER LE VRAI ID MYSQL
     const currentUserId = this.auth.getCurrentUserId();
-    
+
     if (!currentUserId) {
-      console.error('❌ ID MySQL non disponible');
-      console.log('🔍 Debug user:', this.user);
-      this.auth.debugUser();
-      this.showToast('Erreur : ID utilisateur non disponible. Veuillez vous reconnecter.');
+      this.showToast('Erreur : ID utilisateur non disponible.');
       return;
     }
 
@@ -98,39 +98,38 @@ export class DashboardClientPage implements OnInit {
       name: this.newProject.name,
       description: this.newProject.description,
       budget: this.newProject.budget,
-      clientId: currentUserId // 🔹 MAINTENANT LE VRAI ID MYSQL
+      clientId: currentUserId,
     };
 
-    console.log('🚀 Création projet avec payload:', payload);
-
     this.api.createProject(payload).subscribe({
-      next: (res: any) => {
-        this.isCreating = false;
-        
-        console.log('✅ Réponse création projet:', res);
-        
+      next: async (res: any) => {
         const createdProject = res.data?.createProject;
         const projectId = createdProject?.id;
 
+        // ✅ Ajout Firestore (sans AngularFirestoreCompat)
         if (projectId) {
+          const projectRef = doc(collection(this.firestore, 'projects'), projectId.toString());
+          await setDoc(projectRef, {
+            id: projectId,
+            name: payload.name,
+            description: payload.description,
+            budget: payload.budget,
+            clientId: currentUserId,
+            clientEmail: this.user.email,
+            status: 'disponible',
+            createdAt: new Date().toISOString(),
+          });
+
           this.showToast(`Projet créé avec succès (ID: ${projectId})`);
           this.newProject = { name: '', description: '', budget: null };
-          this.loadProjects(); // Recharger la liste
-        } else {
-          this.showToast('Projet créé mais ID non reçu');
+          this.loadProjects();
         }
       },
       error: (err) => {
         this.isCreating = false;
-        console.error('❌ Erreur création projet:', err);
-        
-        // 🔹 Afficher plus de détails sur l'erreur
-        if (err.error) {
-          console.error('Détails erreur:', err.error);
-        }
-        
+        console.error('Erreur création projet:', err);
         this.showToast('Erreur lors de la création du projet');
-      }
+      },
     });
   }
 

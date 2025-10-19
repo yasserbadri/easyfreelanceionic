@@ -1,0 +1,21 @@
+.freelancer-dashboard {
+  h2 {
+    color: var(--ion-color-primary);
+    margin: 12px 0;
+  }
+
+  ion-card {
+    margin-bottom: 12px;
+  }
+
+  .proposal-form {
+    background: #fafafa;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+  }
+
+  .my-proposals ion-card {
+    border-left: 4px solid var(--ion-color-medium);
+  }
+}
